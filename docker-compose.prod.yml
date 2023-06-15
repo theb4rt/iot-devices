@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432"
 
-  ms-web:
+  ms-web-iot:
     build:
       context: .
       dockerfile: Dockerfile.prod
