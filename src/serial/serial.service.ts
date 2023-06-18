@@ -3,7 +3,6 @@ import { ReadlineParser, SerialPort } from 'serialport';
 import { ISensorData } from '../interfaces/sensor-data.interface';
 import { IAlertData } from '../interfaces/alert-data.interface';
 import { SensorDataRepository } from '../repositories/sensor-data.repository';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SensorData } from '../database/entities/sensor-data.entity';
 import { AlertDataRepository } from '../repositories/alert-data.repository';
 import { AlertData } from '../database/entities/alert-data.entity';
