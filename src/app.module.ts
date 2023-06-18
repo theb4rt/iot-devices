@@ -9,6 +9,7 @@ import { WebsocketModule } from './websocket/websocket.module';
 import { DatabaseService } from './database/database.service';
 import { DatabaseModule } from './database/database.module';
 import { DataController } from './data/data.controller';
+import { ArduinoController } from './arduino/arduino.controller';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { DataController } from './data/data.controller';
     DatabaseModule,
     ConfigModule.forRoot(),
   ],
-  controllers: [AppController, DataController],
+  controllers: [AppController, DataController, ArduinoController],
   providers: [AppService, WebsocketService, DatabaseService],
 })
 export class AppModule {}

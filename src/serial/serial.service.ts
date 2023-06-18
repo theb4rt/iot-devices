@@ -37,6 +37,7 @@ export class SerialService {
 
   private async handleData(rawData: string) {
     try {
+      //console.log('Received data:', rawData);
       const data = this.formatAndValidateData(rawData);
       if (data === null) {
         console.log('Data is null');
@@ -160,5 +161,31 @@ export class SerialService {
   private getApproxUnixTime(seconds): number {
     const approxTime = Math.floor(Date.now() / 1000) - 2 * seconds;
     return approxTime;
+  }
+
+  //Send data to arduino
+  sendChangeValue(dto: any) {
+    this.port.write('b4rt');
+    if (dto.led_alert !== undefined) {
+      this.port.write(
+        JSON.stringify({ type: 'change_value', led_alert: dto.led_alert }),
+      );
+    }
+    if (dto.alert_threshold_humidity !== undefined) {
+      this.port.write(
+        JSON.stringify({
+          type: 'change_value',
+          alert_threshold_humidity: dto.alert_threshold_humidity,
+        }),
+      );
+    }
+    if (dto.alert_threshold_temperature !== undefined) {
+      this.port.write(
+        JSON.stringify({
+          type: 'change_value',
+          alert_threshold_temperature: dto.alert_threshold_temperature,
+        }),
+      );
+    }
   }
 }
