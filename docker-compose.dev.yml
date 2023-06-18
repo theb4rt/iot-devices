@@ -5,28 +5,12 @@ services:
     restart: always
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: test_db
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: sensors_db
     volumes:
       - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-
-  ms-web-iot:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    volumes:
-      - .:/app
-      - /app/node_modules
-    ports:
-      - "4000:4000"
-    environment:
-      NODE_ENV: development
-      PORT: 4000
-      DATABASE_URL: postgres://postgres:postgres@db:5432/test_db
-    depends_on:
-      - db
+      - "5433:5432"
 
 volumes:
   db_data:

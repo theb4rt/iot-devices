@@ -22,6 +22,8 @@ services:
       NODE_ENV: production
       PORT: 4000
       DATABASE_URL: postgres://postgres:postgres@db:5432/test_db
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
     depends_on:
       - db
 

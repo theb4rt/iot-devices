@@ -10,7 +10,6 @@ export class RoutePrefixingMiddleware implements NestMiddleware {
     const apiPrefix = this.configService.get<string>('api.prefix');
     const apiVersion = this.configService.get<string>('api.version');
     req.url = `${apiPrefix}/${apiVersion}/${req.url}`;
-
     next();
   }
 }

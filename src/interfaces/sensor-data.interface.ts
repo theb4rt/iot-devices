@@ -1,5 +1,5 @@
-export interface SensorData {
-  timestamp: number;
+export interface ISensorData {
   temperature: number;
   humidity: number;
+  timestamp?: number;
 }

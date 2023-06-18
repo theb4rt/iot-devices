@@ -13,4 +13,7 @@ export class AlertData {
 
   @Column({ type: 'decimal', precision: 5, scale: 2 })
   value: number;
+
+  @Column({ type: 'bigint' })
+  timestamp: number;
 }
