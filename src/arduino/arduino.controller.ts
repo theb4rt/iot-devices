@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { SerialService } from '../serial/serial.service';
 import { IChangeValueDto } from '../interfaces/arduino.interface';
 
@@ -7,10 +7,11 @@ export class ArduinoController {
   constructor(private readonly serialService: SerialService) {}
 
   @Post('change-value')
-  changeValue(@Body() changeValueDto: IChangeValueDto): string {
+  @HttpCode(200)
+  changeValue(@Body() changeValueDto: IChangeValueDto): { data: {}; message: string } {
     console.log('Change value command received');
     console.log(changeValueDto);
     this.serialService.sendChangeValue(changeValueDto);
-    return 'Change value command sent';
+    return { data: {}, message: 'Change value command sent' };
   }
 }

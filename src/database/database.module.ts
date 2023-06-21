@@ -10,7 +10,7 @@ import { join } from 'path';
       useFactory: async (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('DATABASE_HOST', 'localhost'),
-        port: configService.get<number>('DATABASE_PORT', 5432),
+        port: configService.get<number>('DATABASE_PORT', 5433),
         username: configService.get('DATABASE_USERNAME', 'postgres'),
         password: configService.get('DATABASE_PASSWORD', '1234'),
         database: configService.get('DATABASE_NAME', 'sensors_db'),

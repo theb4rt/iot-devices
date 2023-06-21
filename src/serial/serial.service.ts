@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { ReadlineParser, SerialPort } from 'serialport';
 import { ISensorData } from '../interfaces/sensor-data.interface';
-import { IAlertData } from '../interfaces/alert-data.interface';
+import { IAlertData, IValuesData } from '../interfaces/alert-data.interface';
 import { SensorDataRepository } from '../repositories/sensor-data.repository';
 import { SensorData } from '../database/entities/sensor-data.entity';
 import { AlertDataRepository } from '../repositories/alert-data.repository';
 import { AlertData } from '../database/entities/alert-data.entity';
+import { WebsocketService } from '../websocket/websocket.service';
+import {
+  ILedData,
+  ITestModeStatus,
+  IThresholdTemp,
+} from '../interfaces/actual-values.interface';
 
 @Injectable()
 export class SerialService {
@@ -16,6 +22,7 @@ export class SerialService {
   constructor(
     private readonly sensorDataRepository: SensorDataRepository,
     private readonly alertDataRepository: AlertDataRepository,
+    private readonly websocketService: WebsocketService,
   ) {
     this.connectToPort();
     setInterval(() => this.storeTempSensorData(), 60000); // 60000 ms = 1 minute
@@ -42,6 +49,9 @@ export class SerialService {
       if (data === null) {
         console.log('Data is null');
       } else if (data.type === 'sensors') {
+        console.log('data.data', data.data);
+        this.websocketService.sendJsonDataToAll('sensorData', data.data);
+
         const sensorDataEntities = data.data?.map(
           ({ timestamp, temperature, humidity }) => {
             const sensorData = new SensorData();
@@ -54,6 +64,7 @@ export class SerialService {
         this.tempSensorDataEntities.push(...sensorDataEntities);
         console.log(data.data);
       } else if (data.type === 'alert') {
+        this.websocketService.sendJsonDataToAll('alertData', data.data);
         console.log(data.data);
 
         const alertDataEntitie = new AlertData();
@@ -101,11 +112,11 @@ export class SerialService {
   ):
     | { type: 'sensors'; data: ISensorData[] }
     | { type: 'alert'; data: IAlertData }
+    | ILedData
+    | IThresholdTemp
+    | ITestModeStatus
     | null {
     const sanitizedData = rawData.trim();
-    // if (sanitizedData.endsWith(',')) {
-    //   sanitizedData = sanitizedData.slice(0, -1);
-    // }
 
     if (sanitizedData.startsWith('[')) {
       const parsedData: ISensorData[] = JSON.parse(sanitizedData);
@@ -138,21 +149,49 @@ export class SerialService {
       }
       return { type: 'sensors', data: sensorFormatedData };
     } else {
-      const parsedData: IAlertData = JSON.parse(sanitizedData);
-      const { alert, sensor, value } = parsedData;
+      const parsedData: IAlertData | IValuesData = JSON.parse(sanitizedData);
 
-      if (
-        typeof alert !== 'string' ||
-        (sensor !== 'temperature' && sensor !== 'humidity') ||
-        Number.isNaN(value)
-      ) {
-        return null;
+      if (parsedData.type === 'alert') {
+        const { alert, sensor, value } = parsedData;
+
+        if (
+          typeof alert !== 'string' ||
+          (sensor !== 'temperature' && sensor !== 'humidity') ||
+          Number.isNaN(value)
+        ) {
+          return null;
+        }
+
+        const timestamp = this.getApproxUnixTime(1);
+        const twoSecondsAgoDate = new Date(timestamp * 1000);
+        console.log(twoSecondsAgoDate.toLocaleString());
+        parsedData.timestamp = timestamp;
+        parsedData.alertStatus = true;
+
+        return { type: 'alert', data: parsedData };
+      } else if (parsedData.type === 'values') {
+        const { actual_led_on, actual_threshold_temperature, testModeStatus } =
+          parsedData;
+
+        if (actual_led_on !== undefined) {
+          this.websocketService.sendJsonDataToAll('ledActualValue', {
+            type: 'actual_value',
+            value: actual_led_on,
+          });
+        }
+        if (actual_threshold_temperature !== undefined) {
+          this.websocketService.sendJsonDataToAll('thresholdActualValue', {
+            type: 'actual_value',
+            value: actual_threshold_temperature,
+          });
+        }
+        if (testModeStatus !== undefined) {
+          this.websocketService.sendJsonDataToAll('ledActualValue', {
+            type: 'actual_value',
+            value: actual_led_on,
+          });
+        }
       }
-      const timestamp = this.getApproxUnixTime(1);
-      const twoSecondsAgoDate = new Date(timestamp * 1000);
-      console.log(twoSecondsAgoDate.toLocaleString());
-      parsedData.timestamp = timestamp;
-      return { type: 'alert', data: parsedData };
     }
   }
 
@@ -165,10 +204,9 @@ export class SerialService {
 
   //Send data to arduino
   sendChangeValue(dto: any) {
-    this.port.write('b4rt');
-    if (dto.led_alert !== undefined) {
+    if (dto.led_color !== undefined) {
       this.port.write(
-        JSON.stringify({ type: 'change_value', led_alert: dto.led_alert }),
+        JSON.stringify({ type: 'change_value', led_color: dto.led_color }),
       );
     }
     if (dto.alert_threshold_humidity !== undefined) {
@@ -185,6 +223,11 @@ export class SerialService {
           type: 'change_value',
           alert_threshold_temperature: dto.alert_threshold_temperature,
         }),
+      );
+    }
+    if (dto.test_mode !== undefined) {
+      this.port.write(
+        JSON.stringify({ type: 'change_value', test_mode: dto.test_mode }),
       );
     }
   }
