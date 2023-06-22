@@ -11,5 +11,5 @@ export interface IValuesData {
   type: 'values';
   actual_led_on?: number;
   actual_threshold_temperature?: number;
-  testModeStatus: boolean;
+  test_mode_status?: boolean;
 }

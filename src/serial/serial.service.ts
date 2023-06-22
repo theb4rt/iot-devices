@@ -7,11 +7,7 @@ import { SensorData } from '../database/entities/sensor-data.entity';
 import { AlertDataRepository } from '../repositories/alert-data.repository';
 import { AlertData } from '../database/entities/alert-data.entity';
 import { WebsocketService } from '../websocket/websocket.service';
-import {
-  ILedData,
-  ITestModeStatus,
-  IThresholdTemp,
-} from '../interfaces/actual-values.interface';
+import { IActualValues } from '../interfaces/actual-values.interface';
 
 @Injectable()
 export class SerialService {
@@ -112,9 +108,7 @@ export class SerialService {
   ):
     | { type: 'sensors'; data: ISensorData[] }
     | { type: 'alert'; data: IAlertData }
-    | ILedData
-    | IThresholdTemp
-    | ITestModeStatus
+    | IActualValues
     | null {
     const sanitizedData = rawData.trim();
 
@@ -150,7 +144,6 @@ export class SerialService {
       return { type: 'sensors', data: sensorFormatedData };
     } else {
       const parsedData: IAlertData | IValuesData = JSON.parse(sanitizedData);
-
       if (parsedData.type === 'alert') {
         const { alert, sensor, value } = parsedData;
 
@@ -170,27 +163,43 @@ export class SerialService {
 
         return { type: 'alert', data: parsedData };
       } else if (parsedData.type === 'values') {
-        const { actual_led_on, actual_threshold_temperature, testModeStatus } =
-          parsedData;
+        const {
+          actual_led_on,
+          actual_threshold_temperature,
+          test_mode_status,
+        } = parsedData;
+        console.log('actual_led_on: ' + actual_led_on);
+        console.log(
+          'actual_threshold_temperature: ' + actual_threshold_temperature,
+        );
+        console.log('test_mode_status: ' + test_mode_status);
 
-        if (actual_led_on !== undefined) {
-          this.websocketService.sendJsonDataToAll('ledActualValue', {
-            type: 'actual_value',
-            value: actual_led_on,
-          });
-        }
-        if (actual_threshold_temperature !== undefined) {
+        this.websocketService.sendJsonDataToAll('actualValues', {
+          type: 'actual_value',
+          actualLedOn: actual_led_on,
+          actualThresholdTem: actual_threshold_temperature,
+          actualTestModeStatus: test_mode_status,
+        });
+
+        return {
+          type: 'actual_value',
+          led_on: actual_led_on,
+          thresholdTemp: actual_threshold_temperature,
+          testModeStatus: test_mode_status,
+        };
+
+        /* if (actual_threshold_temperature !== undefined) {
           this.websocketService.sendJsonDataToAll('thresholdActualValue', {
             type: 'actual_value',
             value: actual_threshold_temperature,
           });
         }
-        if (testModeStatus !== undefined) {
-          this.websocketService.sendJsonDataToAll('ledActualValue', {
+        if (test_mode_status !== undefined) {
+          this.websocketService.sendJsonDataToAll('testModeStatus', {
             type: 'actual_value',
-            value: actual_led_on,
+            value: test_mode_status,
           });
-        }
+        }*/
       }
     }
   }
@@ -230,5 +239,9 @@ export class SerialService {
         JSON.stringify({ type: 'change_value', test_mode: dto.test_mode }),
       );
     }
+  }
+
+  getActualValues() {
+    this.port.write(JSON.stringify({ type: 'get_actual_values' }));
   }
 }

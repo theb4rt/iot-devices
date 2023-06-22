@@ -12,3 +12,10 @@ export interface ITestModeStatus {
   type: 'actual_value';
   testModeStatus: boolean;
 }
+
+export interface IActualValues {
+  type: 'actual_value';
+  led_on: number;
+  thresholdTemp: number;
+  testModeStatus: boolean;
+}
