@@ -1,16 +1,17 @@
-version: '3.9'
+version: '3.8'
+
 services:
   db:
-    image: postgres
+    image: postgres:latest
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: sensors_db
-    volumes:
-      - db_data:/var/lib/postgresql/data
+      POSTGRES_PASSWORD: "1234"
+      POSTGRES_USER: "postgres"
+      POSTGRES_DB: "sensors_db"
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
 
 volumes:
-  db_data:
+  postgres_data:
