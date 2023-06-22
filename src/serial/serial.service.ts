@@ -167,6 +167,7 @@ export class SerialService {
           actual_led_on,
           actual_threshold_temperature,
           test_mode_status,
+          alert_led_state,
         } = parsedData;
         console.log();
 
@@ -175,6 +176,7 @@ export class SerialService {
           actualLedOn: actual_led_on,
           actualThresholdTem: actual_threshold_temperature,
           actualTestModeStatus: test_mode_status,
+          alertLedState: alert_led_state,
         };
 
         console.log('actualValues', actualValues);
@@ -237,6 +239,11 @@ export class SerialService {
     if (dto.test_mode !== undefined) {
       this.port.write(
         JSON.stringify({ type: 'change_value', test_mode: dto.test_mode }),
+      );
+    }
+    if (dto.led_alert !== undefined) {
+      this.port.write(
+        JSON.stringify({ type: 'change_value', led_alert: dto.led_alert }),
       );
     }
   }
