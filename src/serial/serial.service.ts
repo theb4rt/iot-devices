@@ -168,18 +168,18 @@ export class SerialService {
           actual_threshold_temperature,
           test_mode_status,
         } = parsedData;
-        console.log('actual_led_on: ' + actual_led_on);
-        console.log(
-          'actual_threshold_temperature: ' + actual_threshold_temperature,
-        );
-        console.log('test_mode_status: ' + test_mode_status);
+        console.log();
 
-        this.websocketService.sendJsonDataToAll('actualValues', {
+        const actualValues = {
           type: 'actual_value',
           actualLedOn: actual_led_on,
           actualThresholdTem: actual_threshold_temperature,
           actualTestModeStatus: test_mode_status,
-        });
+        };
+
+        console.log('actualValues', actualValues);
+
+        this.websocketService.sendJsonDataToAll('actualValues', actualValues);
 
         return {
           type: 'actual_value',
